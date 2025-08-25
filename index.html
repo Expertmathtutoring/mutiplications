@@ -1,147 +1,144 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Balloon Multiplication Game</title>
-  <style>
-    body {
-      background-color: #121212;
-      color: #f0f0f0;
-      font-family: 'Comic Sans MS', cursive, sans-serif;
-      text-align: center;
-      margin: 0;
-      padding: 0;
-    }
-    h1 {
-      font-size: 2.5em;
-      margin: 20px 0;
-      color: #ffcc00;
-    }
-    #question {
-      font-size: 2.5em;
-      margin: 20px 0;
-      color: #00e6e6;
-    }
-    #balloons {
-      display: flex;
-      justify-content: center;
-      gap: 40px;
-      margin-top: 40px;
-    }
-    .balloon {
-      width: 100px;
-      height: 130px;
-      border-radius: 50%;
-      background: #ff4d4d;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 1.8em;
-      color: white;
-      cursor: pointer;
-      transition: transform 0.3s, background 0.3s;
-      position: relative;
-    }
-    .balloon:hover {
-      transform: scale(1.1);
-    }
-    .string {
-      width: 2px;
-      height: 50px;
-      background: white;
-      position: absolute;
-      top: 130px;
-    }
-    #feedback {
-      font-size: 1.8em;
-      margin-top: 20px;
-      height: 40px;
-    }
-    #score {
-      margin-top: 20px;
-      font-size: 1.5em;
-      color: #ffcc00;
-    }
-    .correct {
-      background: #28a745 !important; /* green */
-    }
-    .wrong {
-      animation: shake 0.3s;
-      background: #555 !important;
-    }
-    @keyframes shake {
-      0% { transform: translateX(0); }
-      25% { transform: translateX(-5px); }
-      50% { transform: translateX(5px); }
-      75% { transform: translateX(-5px); }
-      100% { transform: translateX(0); }
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Balloon Multiplication Game</title>
+<style>
+  body {
+    background: #121212;
+    color: #fff;
+    font-family: 'Comic Sans MS', sans-serif;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+  }
+  h1 {
+    margin: 20px;
+    font-size: 2.5em;
+    color: #FFD700;
+  }
+  #question {
+    font-size: 2.5em;
+    margin: 20px;
+    color: #00FFFF;
+  }
+  .balloon-container {
+    display: flex;
+    justify-content: center;
+    margin: 30px;
+    gap: 30px;
+  }
+  .balloon {
+    width: 100px;
+    height: 140px;
+    background: radial-gradient(circle at 30% 30%, #ff4d4d, #cc0000);
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #fff;
+    transition: transform 0.2s, background 0.3s;
+  }
+  .balloon:hover {
+    transform: scale(1.1);
+  }
+  .balloon::after {
+    content: "";
+    position: absolute;
+    bottom: -20px;
+    width: 2px;
+    height: 40px;
+    background: #fff;
+  }
+  .correct {
+    background: radial-gradient(circle at 30% 30%, #00cc66, #006633) !important;
+  }
+  .wrong {
+    background: radial-gradient(circle at 30% 30%, #ff3333, #990000) !important;
+  }
+  #feedback {
+    font-size: 1.5em;
+    margin: 20px;
+  }
+  #score {
+    font-size: 1.3em;
+    margin: 15px;
+  }
+</style>
 </head>
 <body>
-  <h1>🎈 Multiplication Balloon Game 🎈</h1>
-  <div id="question"></div>
-  <div id="balloons"></div>
+  <h1>🎈 Balloon Multiplication 🎈</h1>
+  <div id="question">Loading...</div>
+  <div class="balloon-container" id="balloonContainer"></div>
   <div id="feedback"></div>
-  <div id="score"></div>
+  <div id="score">Score: 0 out of 0</div>
 
-  <script>
-    let score = 0;
-    let total = 0;
-    let correctAnswer = 0;
+<script>
+let score = 0;
+let total = 0;
+let correctAnswer = 0;
 
-    function newQuestion() {
-      total++;
-      const num1 = Math.floor(Math.random() * 9) + 1;
-      const num2 = Math.floor(Math.random() * 9) + 1;
-      correctAnswer = num1 * num2;
-      document.getElementById('question').textContent = `${num1} × ${num2} = ?`;
+function newQuestion() {
+  const num1 = Math.floor(Math.random() * 9) + 1;
+  const num2 = Math.floor(Math.random() * 9) + 1;
+  correctAnswer = num1 * num2;
 
-      // Generate answer options
-      let answers = new Set([correctAnswer]);
-      while (answers.size < 3) {
-        answers.add(Math.floor(Math.random() * 81) + 1);
+  document.getElementById("question").textContent = `${num1} × ${num2} = ?`;
+
+  // Generate answers
+  let answers = [correctAnswer];
+  while (answers.length < 4) {
+    let wrong = Math.floor(Math.random() * 81) + 1;
+    if (!answers.includes(wrong)) {
+      answers.push(wrong);
+    }
+  }
+
+  // Shuffle answers
+  answers.sort(() => Math.random() - 0.5);
+
+  const container = document.getElementById("balloonContainer");
+  container.innerHTML = "";
+
+  answers.forEach(ans => {
+    const balloon = document.createElement("div");
+    balloon.className = "balloon";
+    balloon.textContent = ans;
+    balloon.onclick = () => checkAnswer(balloon, ans);
+    container.appendChild(balloon);
+  });
+
+  document.getElementById("feedback").textContent = "";
+}
+
+function checkAnswer(balloon, ans) {
+  total++;
+  if (ans === correctAnswer) {
+    score++;
+    balloon.classList.add("correct");
+    document.getElementById("feedback").textContent = "🎉 Correct! Great job!";
+  } else {
+    balloon.classList.add("wrong");
+    document.getElementById("feedback").textContent = `❌ Oops! The answer was ${correctAnswer}`;
+    // highlight correct balloon
+    [...document.getElementsByClassName("balloon")].forEach(b => {
+      if (parseInt(b.textContent) === correctAnswer) {
+        b.classList.add("correct");
       }
-      answers = Array.from(answers).sort(() => Math.random() - 0.5);
+    });
+  }
+  document.getElementById("score").textContent = `Score: ${score} out of ${total}`;
+  setTimeout(newQuestion, 1500);
+}
 
-      // Display balloons
-      const balloonDiv = document.getElementById('balloons');
-      balloonDiv.innerHTML = '';
-      answers.forEach(ans => {
-        const balloon = document.createElement('div');
-        balloon.className = 'balloon';
-        balloon.textContent = ans;
-        const string = document.createElement('div');
-        string.className = 'string';
-        balloon.appendChild(string);
-
-        balloon.onclick = () => checkAnswer(balloon, ans);
-        balloonDiv.appendChild(balloon);
-      });
-
-      document.getElementById('feedback').textContent = '';
-      updateScore();
-    }
-
-    function checkAnswer(balloon, ans) {
-      if (ans === correctAnswer) {
-        balloon.classList.add('correct');
-        document.getElementById('feedback').textContent = "🎉 Great job! Correct!";
-        score++;
-        setTimeout(newQuestion, 1000);
-      } else {
-        balloon.classList.add('wrong');
-        document.getElementById('feedback').textContent = "❌ Oops! Try again!";
-      }
-      updateScore();
-    }
-
-    function updateScore() {
-      document.getElementById('score').textContent = `Score: ${score} out of ${total-1}`;
-    }
-
-    newQuestion();
-  </script>
+// Start game
+newQuestion();
+</script>
 </body>
 </html>
+
 
