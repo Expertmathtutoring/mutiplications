@@ -2,141 +2,146 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>🎈 Balloon Multiplication Game 🎈</title>
+  <title>Balloon Multiplication Game</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: #f0f0f0;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
       text-align: center;
-      background: #121212;
-      color: #fff;
+      margin: 0;
+      padding: 0;
     }
     h1 {
-      color: #ffcc00;
       font-size: 2.5em;
-      margin-bottom: 10px;
+      margin: 20px 0;
+      color: #ffcc00;
     }
     #question {
-      font-size: 2.2em;
+      font-size: 2.5em;
       margin: 20px 0;
-      color: #ffccff;
+      color: #00e6e6;
     }
-    .balloon-container {
+    #balloons {
       display: flex;
       justify-content: center;
-      flex-wrap: wrap;
-      gap: 20px;
-      margin: 20px 0;
+      gap: 40px;
+      margin-top: 40px;
     }
     .balloon {
       width: 100px;
       height: 130px;
-      background: radial-gradient(circle at 30% 30%, #ff6666, #cc0000);
-      border-radius: 50% 50% 45% 55% / 55% 55% 45% 45%;
-      position: relative;
-      cursor: pointer;
+      border-radius: 50%;
+      background: #ff4d4d;
       display: flex;
-      align-items: center;
       justify-content: center;
+      align-items: center;
       font-size: 1.8em;
-      font-weight: bold;
       color: white;
-      transition: transform 0.2s ease;
+      cursor: pointer;
+      transition: transform 0.3s, background 0.3s;
+      position: relative;
     }
     .balloon:hover {
       transform: scale(1.1);
     }
     .string {
       width: 2px;
-      height: 40px;
+      height: 50px;
       background: white;
       position: absolute;
-      bottom: -40px;
-      left: 50%;
-      transform: translateX(-50%);
+      top: 130px;
     }
     #feedback {
-      font-size: 1.4em;
-      margin-top: 15px;
-      min-height: 30px;
-    }
-    #scoreBoard {
-      font-size: 1.3em;
+      font-size: 1.8em;
       margin-top: 20px;
-      color: #00ffcc;
+      height: 40px;
+    }
+    #score {
+      margin-top: 20px;
+      font-size: 1.5em;
+      color: #ffcc00;
+    }
+    .correct {
+      background: #28a745 !important; /* green */
+    }
+    .wrong {
+      animation: shake 0.3s;
+      background: #555 !important;
+    }
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      50% { transform: translateX(5px); }
+      75% { transform: translateX(-5px); }
+      100% { transform: translateX(0); }
     }
   </style>
 </head>
 <body>
-  <h1>🎈 Balloon Multiplication 🎈</h1>
-  <div id="question">What is 3 × 4 ?</div>
-  <div class="balloon-container" id="options"></div>
+  <h1>🎈 Multiplication Balloon Game 🎈</h1>
+  <div id="question"></div>
+  <div id="balloons"></div>
   <div id="feedback"></div>
-  <div id="scoreBoard">Score: 0 out of 0</div>
+  <div id="score"></div>
 
   <script>
-    const questionEl = document.getElementById("question");
-    const optionsEl = document.getElementById("options");
-    const feedbackEl = document.getElementById("feedback");
-    const scoreBoardEl = document.getElementById("scoreBoard");
-
     let score = 0;
     let total = 0;
     let correctAnswer = 0;
 
-    const positiveResponses = [
-      "🎉 Awesome!", "👏 Great job!", "🌟 Correct!", "🔥 You're on fire!",
-      "💯 Perfect!", "🥳 Nice hit!"
-    ];
-    const negativeResponses = [
-      "😢 Oops, try again!", "❌ Not this one.", "🙈 Missed it!",
-      "⚡ Wrong balloon!"
-    ];
-
     function newQuestion() {
-      const a = Math.floor(Math.random() * 9) + 1;
-      const b = Math.floor(Math.random() * 9) + 1;
-      correctAnswer = a * b;
-      questionEl.textContent = `What is ${a} × ${b}?`;
+      total++;
+      const num1 = Math.floor(Math.random() * 9) + 1;
+      const num2 = Math.floor(Math.random() * 9) + 1;
+      correctAnswer = num1 * num2;
+      document.getElementById('question').textContent = `${num1} × ${num2} = ?`;
 
-      // Generate options
+      // Generate answer options
       let answers = new Set([correctAnswer]);
-      while (answers.size < 4) {
+      while (answers.size < 3) {
         answers.add(Math.floor(Math.random() * 81) + 1);
       }
-      let shuffled = Array.from(answers).sort(() => Math.random() - 0.5);
+      answers = Array.from(answers).sort(() => Math.random() - 0.5);
 
-      optionsEl.innerHTML = "";
-      shuffled.forEach(num => {
-        const balloon = document.createElement("div");
-        balloon.className = "balloon";
-        balloon.textContent = num;
-        balloon.innerHTML += '<div class="string"></div>';
-        balloon.addEventListener("click", () => checkAnswer(num));
-        optionsEl.appendChild(balloon);
+      // Display balloons
+      const balloonDiv = document.getElementById('balloons');
+      balloonDiv.innerHTML = '';
+      answers.forEach(ans => {
+        const balloon = document.createElement('div');
+        balloon.className = 'balloon';
+        balloon.textContent = ans;
+        const string = document.createElement('div');
+        string.className = 'string';
+        balloon.appendChild(string);
+
+        balloon.onclick = () => checkAnswer(balloon, ans);
+        balloonDiv.appendChild(balloon);
       });
+
+      document.getElementById('feedback').textContent = '';
+      updateScore();
     }
 
-    function checkAnswer(choice) {
-      total++;
-      if (choice === correctAnswer) {
+    function checkAnswer(balloon, ans) {
+      if (ans === correctAnswer) {
+        balloon.classList.add('correct');
+        document.getElementById('feedback').textContent = "🎉 Great job! Correct!";
         score++;
-        feedbackEl.textContent = positiveResponses[Math.floor(Math.random() * positiveResponses.length)];
-        feedbackEl.style.color = "#00ff00";
+        setTimeout(newQuestion, 1000);
       } else {
-        feedbackEl.textContent = negativeResponses[Math.floor(Math.random() * negativeResponses.length)] +
-          ` Correct: ${correctAnswer}`;
-        feedbackEl.style.color = "#ff4444";
+        balloon.classList.add('wrong');
+        document.getElementById('feedback').textContent = "❌ Oops! Try again!";
       }
       updateScore();
-      setTimeout(newQuestion, 1200);
     }
 
     function updateScore() {
-      scoreBoardEl.textContent = `Score: ${score} out of ${total}`;
+      document.getElementById('score').textContent = `Score: ${score} out of ${total-1}`;
     }
 
-    // Start game
     newQuestion();
   </script>
 </body>
 </html>
+
