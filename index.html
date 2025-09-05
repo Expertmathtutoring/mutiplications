@@ -2,84 +2,115 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Balloon Multiplication Game</title>
 <style>
   body {
-    background: #121212;
-    color: #fff;
-    font-family: 'Comic Sans MS', sans-serif;
-    text-align: center;
     margin: 0;
     padding: 0;
+    background: linear-gradient(to bottom, #1e1e2f, #121212);
+    color: #fff;
+    font-family: "Comic Sans MS", sans-serif;
+    text-align: center;
+    height: 100vh;
+    overflow: hidden;
   }
+
   h1 {
-    margin: 20px;
+    margin-top: 20px;
     font-size: 2.5em;
-    color: #FFD700;
+    color: #ffdd57;
+    text-shadow: 2px 2px 5px #000;
   }
+
   #question {
-    font-size: 2.5em;
-    margin: 20px;
-    color: #00FFFF;
+    font-size: 3em;
+    margin: 20px 0;
+    color: #00eaff;
+    text-shadow: 0px 0px 10px #00eaff;
   }
-  .balloon-container {
+
+  #balloon-container {
     display: flex;
     justify-content: center;
-    margin: 30px;
-    gap: 30px;
+    gap: 20px;
+    margin-top: 40px;
   }
+
   .balloon {
-    width: 100px;
-    height: 140px;
-    background: radial-gradient(circle at 30% 30%, #ff4d4d, #cc0000);
-    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-    position: relative;
-    cursor: pointer;
+    width: 120px;
+    height: 160px;
+    border-radius: 50% 50% 50% 50%;
+    background: radial-gradient(circle at 30% 30%, #ff4d6d, #d0004c);
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 1.8em;
-    font-weight: bold;
     color: #fff;
-    transition: transform 0.2s, background 0.3s;
+    font-size: 2em;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.4);
+    position: relative;
+    transition: transform 0.2s ease;
   }
+
   .balloon:hover {
     transform: scale(1.1);
   }
+
   .balloon::after {
-    content: "";
-    position: absolute;
-    bottom: -20px;
-    width: 2px;
-    height: 40px;
+    content: '';
+    width: 4px;
+    height: 30px;
     background: #fff;
+    position: absolute;
+    bottom: -30px;
   }
-  .correct {
-    background: radial-gradient(circle at 30% 30%, #00cc66, #006633) !important;
-  }
-  .wrong {
-    background: radial-gradient(circle at 30% 30%, #ff3333, #990000) !important;
-  }
+
   #feedback {
+    margin-top: 30px;
     font-size: 1.5em;
-    margin: 20px;
+    min-height: 40px;
   }
-  #score {
-    font-size: 1.3em;
-    margin: 15px;
+
+  .correct {
+    color: #00ff99;
+    animation: pop 0.6s ease;
+  }
+
+  .wrong {
+    color: #ff4d6d;
+  }
+
+  @keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.5); }
+    100% { transform: scale(1); }
+  }
+
+  /* Firework sparks */
+  .spark {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0.9;
+    animation: explode 1.5s forwards;
+  }
+  @keyframes explode {
+    from { transform: translate(0,0) scale(1); opacity:1; }
+    to { transform: translate(var(--x), var(--y)) scale(0.3); opacity:0; }
   }
 </style>
 </head>
 <body>
-  <h1>🎈 Balloon Multiplication 🎈</h1>
-  <div id="question">Loading...</div>
-  <div class="balloon-container" id="balloonContainer"></div>
-  <div id="feedback"></div>
-  <div id="score">Score: 0 out of 0</div>
+<h1>🎈 Multiplication Balloon Game 🎈</h1>
+<div id="question">?</div>
+<div id="balloon-container"></div>
+<div id="feedback"></div>
 
 <script>
-let score = 0;
-let total = 0;
 let correctAnswer = 0;
 
 function newQuestion() {
@@ -87,55 +118,67 @@ function newQuestion() {
   const num2 = Math.floor(Math.random() * 9) + 1;
   correctAnswer = num1 * num2;
 
-  document.getElementById("question").textContent = `${num1} × ${num2} = ?`;
+  document.getElementById("question").textContent = `${num1} × ${num2}`;
 
-  // Generate answers
-  let answers = [correctAnswer];
-  while (answers.length < 4) {
-    let wrong = Math.floor(Math.random() * 81) + 1;
-    if (!answers.includes(wrong)) {
-      answers.push(wrong);
-    }
-  }
-
-  // Shuffle answers
-  answers.sort(() => Math.random() - 0.5);
-
-  const container = document.getElementById("balloonContainer");
+  const container = document.getElementById("balloon-container");
   container.innerHTML = "";
 
-  answers.forEach(ans => {
+  let answers = new Set();
+  answers.add(correctAnswer);
+
+  while (answers.size < 4) {
+    answers.add(Math.floor(Math.random() * 81) + 1);
+  }
+
+  let shuffled = Array.from(answers).sort(() => Math.random() - 0.5);
+
+  shuffled.forEach(ans => {
     const balloon = document.createElement("div");
     balloon.className = "balloon";
     balloon.textContent = ans;
-    balloon.onclick = () => checkAnswer(balloon, ans);
+    balloon.onclick = () => checkAnswer(ans, balloon);
     container.appendChild(balloon);
   });
-
-  document.getElementById("feedback").textContent = "";
 }
 
-function checkAnswer(balloon, ans) {
-  total++;
-  if (ans === correctAnswer) {
-    score++;
-    balloon.classList.add("correct");
-    document.getElementById("feedback").textContent = "🎉 Correct! Great job!";
+function checkAnswer(answer, balloon) {
+  const feedback = document.getElementById("feedback");
+  if (answer === correctAnswer) {
+    balloon.style.background = "radial-gradient(circle at 30% 30%, #00ff99, #009966)";
+    feedback.textContent = "🎉 Amazing! You popped the right balloon! 🎉";
+    feedback.className = "correct";
+
+    // Launch bigger firework
+    launchFireworks(balloon);
+
+    setTimeout(newQuestion, 1500);
   } else {
-    balloon.classList.add("wrong");
-    document.getElementById("feedback").textContent = `❌ Oops! The answer was ${correctAnswer}`;
-    // highlight correct balloon
-    [...document.getElementsByClassName("balloon")].forEach(b => {
-      if (parseInt(b.textContent) === correctAnswer) {
-        b.classList.add("correct");
-      }
-    });
+    balloon.style.background = "radial-gradient(circle at 30% 30%, #999, #333)";
+    feedback.textContent = "❌ Oops! Try another balloon!";
+    feedback.className = "wrong";
   }
-  document.getElementById("score").textContent = `Score: ${score} out of ${total}`;
-  setTimeout(newQuestion, 1500);
 }
 
-// Start game
+function launchFireworks(balloon) {
+  const rect = balloon.getBoundingClientRect();
+  const centerX = rect.left + rect.width/2;
+  const centerY = rect.top + rect.height/2;
+
+  for (let i = 0; i < 100; i++) { // Bigger firework: 100 sparks
+    const spark = document.createElement("div");
+    spark.className = "spark";
+    const angle = Math.random() * 2 * Math.PI;
+    const dist = Math.random() * 300 + 50; // Bigger explosion radius
+    spark.style.setProperty("--x", `${Math.cos(angle)*dist}px`);
+    spark.style.setProperty("--y", `${Math.sin(angle)*dist}px`);
+    spark.style.left = centerX + "px";
+    spark.style.top = centerY + "px";
+    spark.style.background = `hsl(${Math.random()*360}, 100%, 60%)`;
+    document.body.appendChild(spark);
+    setTimeout(()=>spark.remove(), 1500);
+  }
+}
+
 newQuestion();
 </script>
 </body>
